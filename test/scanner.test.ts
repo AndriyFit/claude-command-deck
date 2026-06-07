@@ -54,3 +54,55 @@ describe('hashString', () => {
     expect(h).toHaveLength(12);
   });
 });
+
+import * as path from 'path';
+import { scan, makeItem } from '../src/scanner';
+
+const FIX = path.join(__dirname, 'fixtures', 'claude');
+
+describe('makeItem', () => {
+  it('builds user command invocation', () => {
+    const it = makeItem('command', 'user', 'foo', '---\ndescription: D\n---\nbody');
+    expect(it.id).toBe('command:user:foo');
+    expect(it.invocation).toBe('/foo');
+    expect(it.rawDescription).toBe('D');
+  });
+  it('builds plugin invocation with namespace', () => {
+    const it = makeItem('skill', 'myplugin', 'pskill', '---\ndescription: D\n---');
+    expect(it.invocation).toBe('/myplugin:pskill');
+  });
+  it('falls back to name when no description', () => {
+    const it = makeItem('command', 'user', 'empty', '');
+    expect(it.rawDescription).toBe('empty');
+  });
+});
+
+describe('scan', () => {
+  it('finds user commands and skills', () => {
+    const items = scan(FIX, false);
+    const ids = items.map(i => i.id).sort();
+    expect(ids).toContain('command:user:foo');
+    expect(ids).toContain('command:user:bar');
+    expect(ids).toContain('skill:user:myskill');
+    expect(ids).toContain('skill:user:single');
+    expect(ids).not.toContain('command:myplugin:pcmd');
+  });
+  it('includes plugins when enabled', () => {
+    const items = scan(FIX, true);
+    const ids = items.map(i => i.id);
+    expect(ids).toContain('command:myplugin:pcmd');
+    expect(ids).toContain('skill:myplugin:pskill');
+    const pcmd = items.find(i => i.id === 'command:myplugin:pcmd')!;
+    expect(pcmd.invocation).toBe('/myplugin:pcmd');
+  });
+  it('uses paragraph fallback for frontmatter-less files', () => {
+    const items = scan(FIX, false);
+    const bar = items.find(i => i.id === 'command:user:bar')!;
+    expect(bar.rawDescription).toBe('Bar does bar things');
+  });
+  it('returns no duplicate ids', () => {
+    const items = scan(FIX, true);
+    const ids = items.map(i => i.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
