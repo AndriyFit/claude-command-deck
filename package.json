@@ -3,6 +3,7 @@
   "displayName": "Claude Command Deck",
   "description": "Sidebar of all Claude Code commands and skills with translated descriptions; click to insert into the terminal.",
   "version": "0.1.0",
+  "publisher": "neuronix",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other"],
   "main": "./dist/extension.js",
