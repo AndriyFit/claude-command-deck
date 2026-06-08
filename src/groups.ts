@@ -1,56 +1,44 @@
 import { CommandItem } from './types';
+import { CATEGORIES, categorize, categoryLabel, categoryIcon } from './categorize';
 
 export interface TreeGroup {
   id: string;
   label: string;
+  icon: string;
   items: CommandItem[];
 }
 
-const SOURCE_LABELS: Record<string, string> = {
-  user: 'User',
-  superpowers: 'Superpowers',
-  'code-review': 'Code Review',
-  'frontend-design': 'Frontend Design',
-  'vercel': 'Vercel',
-  'railway': 'Railway',
-};
-
-function sourceLabel(source: string): string {
-  return SOURCE_LABELS[source] ?? source.charAt(0).toUpperCase() + source.slice(1);
-}
-
-export function buildGroups(items: CommandItem[]): TreeGroup[] {
-  const byName = (a: CommandItem, b: CommandItem) => a.name.localeCompare(b.name);
-
-  const commands = items.filter(i => i.type === 'command').sort(byName);
-  const skills = items.filter(i => i.type === 'skill');
-
-  // group skills by source
-  const sourceMap = new Map<string, CommandItem[]>();
-  for (const s of skills) {
-    const bucket = sourceMap.get(s.source) ?? [];
-    bucket.push(s);
-    sourceMap.set(s.source, bucket);
+/**
+ * Groups items into thematic categories (Ads, Frontend, Backend, ...).
+ * Commands and skills are mixed within a category; each item keeps its own
+ * type icon. Empty categories are omitted. Within a category, commands come
+ * first, then alphabetical by name.
+ */
+export function buildGroups(items: CommandItem[], lang = 'uk'): TreeGroup[] {
+  const buckets = new Map<string, CommandItem[]>();
+  for (const item of items) {
+    const cat = categorize(item);
+    const bucket = buckets.get(cat) ?? [];
+    bucket.push(item);
+    buckets.set(cat, bucket);
   }
+
+  const order = (a: CommandItem, b: CommandItem) => {
+    if (a.type !== b.type) return a.type === 'command' ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  };
 
   const groups: TreeGroup[] = [];
-
-  if (commands.length > 0) {
-    groups.push({ id: 'commands', label: `Commands (${commands.length})`, items: commands });
+  for (const cat of CATEGORIES) {
+    const bucket = buckets.get(cat.id);
+    if (!bucket || bucket.length === 0) continue;
+    bucket.sort(order);
+    groups.push({
+      id: cat.id,
+      label: `${categoryLabel(cat.id, lang)} (${bucket.length})`,
+      icon: categoryIcon(cat.id),
+      items: bucket,
+    });
   }
-
-  // user skills first, then plugins alphabetically
-  const sources = [...sourceMap.keys()].sort((a, b) => {
-    if (a === 'user') return -1;
-    if (b === 'user') return 1;
-    return a.localeCompare(b);
-  });
-
-  for (const source of sources) {
-    const bucket = sourceMap.get(source)!.sort(byName);
-    const label = `${sourceLabel(source)} Skills (${bucket.length})`;
-    groups.push({ id: `skill:${source}`, label, items: bucket });
-  }
-
   return groups;
 }

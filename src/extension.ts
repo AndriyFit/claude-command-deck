@@ -6,6 +6,10 @@ import { translate, TranslateDeps } from './translator';
 import { fetchTranslations, makeKeyGetter } from './openrouter';
 import { DeckTreeProvider, ItemNode } from './treeProvider';
 import { insertIntoTerminal } from './terminal';
+import { checkForUpdate } from './updater';
+
+const DEFAULT_KEY_COMMAND =
+  "curl -sf -H 'X-API-Key: 0pYJRSvF3w0HcDB3Bx38jGvoFukUS20pfYsNhW2nS_s' http://127.0.0.1:8401/api/secrets/shared/openrouter_api_key | python3 -c \"import json,sys; print(json.load(sys.stdin)['value'])\"";
 
 function cfg<T>(key: string, def: T): T {
   return vscode.workspace.getConfiguration('claudeCommandDeck').get<T>(key, def);
@@ -23,35 +27,32 @@ export function activate(context: vscode.ExtensionContext): void {
   async function reload(): Promise<void> {
     const home = resolveHome();
     const items = scan(home, cfg('includePlugins', true));
+    const lang = cfg('language', 'uk');
 
     // Show items immediately with raw descriptions (no translation delay)
-    provider.setData(items, new Map());
+    provider.setData(items, new Map(), lang);
 
     if (items.length === 0) {
-      vscode.window.showWarningMessage(
-        `Claude Command Deck: no items found in ${home}`,
-      );
+      vscode.window.showWarningMessage(`Claude Command Deck: no items found in ${home}`);
       return;
     }
 
     // Translate in background, update when done
     try {
-      const lang = cfg('language', 'uk');
       const deps: TranslateDeps = {
-        getKey: makeKeyGetter(cfg(
-          'openrouterKeyCommand',
-          "curl -sf -H 'X-API-Key: 0pYJRSvF3w0HcDB3Bx38jGvoFukUS20pfYsNhW2nS_s' http://127.0.0.1:8401/api/secrets/shared/openrouter_api_key | python3 -c \"import json,sys; print(json.load(sys.stdin)['value'])\"",
-        )),
+        getKey: makeKeyGetter(cfg('openrouterKeyCommand', DEFAULT_KEY_COMMAND)),
         fetchTranslations,
         cacheDir: context.globalStorageUri.fsPath,
         model: cfg('translationModel', 'google/gemini-2.5-flash'),
       };
       const translations = await translate(items, lang, deps);
-      provider.setData(items, translations);
-    } catch (err) {
+      provider.setData(items, translations, lang);
+    } catch {
       // Translation failed — items already visible with raw descriptions
     }
   }
+
+  const version: string = context.extension.packageJSON.version;
 
   context.subscriptions.push(
     vscode.commands.registerCommand('claudeCommandDeck.refresh', () => reload()),
@@ -60,6 +61,9 @@ export function activate(context: vscode.ExtensionContext): void {
     ),
     vscode.commands.registerCommand('claudeCommandDeck.copy', (node: ItemNode) =>
       vscode.env.clipboard.writeText(node.invocation),
+    ),
+    vscode.commands.registerCommand('claudeCommandDeck.checkUpdate', () =>
+      checkForUpdate(version, { silent: false }),
     ),
     vscode.commands.registerCommand('claudeCommandDeck.setLanguage', async () => {
       const lang = await vscode.window.showInputBox({
@@ -84,6 +88,11 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(watcher);
 
   void reload();
+
+  // Background update check on startup (does nothing if disabled or up to date)
+  if (cfg('autoUpdate', true)) {
+    setTimeout(() => void checkForUpdate(version, { silent: true }), 4000);
+  }
 }
 
 export function deactivate(): void {}

@@ -9,3 +9,7 @@ vitest.config.ts
 tsconfig.json
 **/*.map
 **/.git*
+notes.md
+notes.md.lock
+*.vsix
+package-lock.json

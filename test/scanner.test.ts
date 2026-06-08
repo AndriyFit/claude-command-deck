@@ -105,4 +105,19 @@ describe('scan', () => {
     const ids = items.map(i => i.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
+  it('follows symlinked skill directories', () => {
+    const fs = require('fs') as typeof import('fs');
+    const os = require('os') as typeof import('os');
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'deck-'));
+    const home = path.join(tmp, '.claude');
+    const target = path.join(tmp, 'external', 'linked-skill');
+    fs.mkdirSync(path.join(home, 'skills'), { recursive: true });
+    fs.mkdirSync(target, { recursive: true });
+    fs.writeFileSync(path.join(target, 'SKILL.md'), '---\ndescription: Linked\n---');
+    fs.symlinkSync(target, path.join(home, 'skills', 'linked-skill'));
+
+    const items = scan(home, false);
+    expect(items.map(i => i.id)).toContain('skill:user:linked-skill');
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
 });

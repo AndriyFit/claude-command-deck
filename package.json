@@ -2,8 +2,9 @@
   "name": "claude-command-deck",
   "displayName": "Claude Command Deck",
   "description": "Sidebar of all Claude Code commands and skills with translated descriptions; click to insert into the terminal.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "neuronix",
+  "repository": { "type": "git", "url": "https://github.com/AndriyFit/claude-command-deck.git" },
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other"],
   "main": "./dist/extension.js",
@@ -23,12 +24,14 @@
       { "command": "claudeCommandDeck.refresh", "title": "Command Deck: Refresh", "icon": "$(refresh)" },
       { "command": "claudeCommandDeck.insert", "title": "Insert into Terminal" },
       { "command": "claudeCommandDeck.setLanguage", "title": "Command Deck: Set Language", "icon": "$(globe)" },
+      { "command": "claudeCommandDeck.checkUpdate", "title": "Command Deck: Check for Updates", "icon": "$(cloud-download)" },
       { "command": "claudeCommandDeck.copy", "title": "Copy Invocation" }
     ],
     "menus": {
       "view/title": [
         { "command": "claudeCommandDeck.refresh", "when": "view == claudeCommandDeck.tree", "group": "navigation" },
-        { "command": "claudeCommandDeck.setLanguage", "when": "view == claudeCommandDeck.tree", "group": "navigation" }
+        { "command": "claudeCommandDeck.setLanguage", "when": "view == claudeCommandDeck.tree", "group": "navigation" },
+        { "command": "claudeCommandDeck.checkUpdate", "when": "view == claudeCommandDeck.tree", "group": "navigation" }
       ],
       "view/item/context": [
         { "command": "claudeCommandDeck.copy", "when": "view == claudeCommandDeck.tree && viewItem == deckItem" }
@@ -42,6 +45,7 @@
         "claudeCommandDeck.includePlugins": { "type": "boolean", "default": true, "description": "Include commands/skills from installed plugins." },
         "claudeCommandDeck.openrouterKeyCommand": { "type": "string", "default": "curl -sf -H 'X-API-Key: 0pYJRSvF3w0HcDB3Bx38jGvoFukUS20pfYsNhW2nS_s' http://127.0.0.1:8401/api/secrets/shared/openrouter_api_key | python3 -c \"import json,sys; print(json.load(sys.stdin)['value'])\"", "description": "Shell command that prints the OpenRouter API key." },
         "claudeCommandDeck.translationModel": { "type": "string", "default": "google/gemini-2.5-flash", "description": "OpenRouter model used for translation." },
+        "claudeCommandDeck.autoUpdate": { "type": "boolean", "default": true, "description": "Check GitHub releases for a newer version on startup and offer to install it." },
         "claudeCommandDeck.clickAction": { "type": "string", "enum": ["insert", "run"], "default": "insert", "description": "Reserved for future: insert vs insert+run." }
       }
     }

@@ -81,7 +81,15 @@ function listFiles(dir: string, ext: string): string[] {
 function listDirs(dir: string): string[] {
   try {
     return fs.readdirSync(dir, { withFileTypes: true })
-      .filter(d => d.isDirectory())
+      .filter(d => {
+        if (d.isDirectory()) return true;
+        // Follow symlinks pointing to a directory (skills linked from other
+        // projects). dirent.isDirectory() returns false for symlinks.
+        if (d.isSymbolicLink()) {
+          try { return fs.statSync(path.join(dir, d.name)).isDirectory(); } catch { return false; }
+        }
+        return false;
+      })
       .map(d => path.join(dir, d.name));
   } catch { return []; }
 }

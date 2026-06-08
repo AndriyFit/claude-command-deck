@@ -7,16 +7,43 @@ function it_(id: string, type: 'command' | 'skill', name: string): CommandItem {
 }
 
 describe('buildGroups', () => {
-  it('separates commands and skills with counts', () => {
+  it('groups items into thematic categories with counts', () => {
     const groups = buildGroups([
-      it_('1', 'command', 'b'),
-      it_('2', 'skill', 'z'),
-      it_('3', 'command', 'a'),
+      it_('1', 'skill', 'ads-meta'),
+      it_('2', 'skill', 'ads-tiktok'),
+      it_('3', 'command', 'code-review'),
     ]);
-    expect(groups[0].id).toBe('commands');
-    expect(groups[0].label).toBe('Commands (2)');
-    expect(groups[0].items.map(i => i.name)).toEqual(['a', 'b']);
-    expect(groups[1].id).toBe('skill:user');
-    expect(groups[1].label).toBe('User Skills (1)');
+    const ads = groups.find(g => g.id === 'ads');
+    const review = groups.find(g => g.id === 'review');
+    expect(ads?.label).toBe('Реклама та маркетинг (2)');
+    expect(review?.label).toBe('Перевірка коду (1)');
+  });
+
+  it('omits empty categories', () => {
+    const groups = buildGroups([it_('1', 'skill', 'ads-meta')]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].id).toBe('ads');
+  });
+
+  it('orders commands before skills within a category', () => {
+    const groups = buildGroups([
+      it_('1', 'skill', 'cpp-review'),
+      it_('2', 'command', 'rust-review'),
+    ]);
+    const review = groups.find(g => g.id === 'review')!;
+    expect(review.items.map(i => i.type)).toEqual(['command', 'skill']);
+  });
+
+  it('uses English labels when lang is en', () => {
+    const groups = buildGroups([it_('1', 'skill', 'ads-meta')], 'en');
+    expect(groups[0].label).toBe('Ads & Marketing (1)');
+  });
+
+  it('respects category display order (ads before review)', () => {
+    const groups = buildGroups([
+      it_('1', 'command', 'code-review'),
+      it_('2', 'skill', 'ads-meta'),
+    ]);
+    expect(groups.map(g => g.id)).toEqual(['ads', 'review']);
   });
 });

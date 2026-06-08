@@ -6,7 +6,7 @@ class GroupNode extends vscode.TreeItem {
   constructor(public group: TreeGroup) {
     super(group.label, vscode.TreeItemCollapsibleState.Expanded);
     this.contextValue = 'deckGroup';
-    this.iconPath = new vscode.ThemeIcon(group.id === 'commands' ? 'terminal' : 'sparkle');
+    this.iconPath = new vscode.ThemeIcon(group.icon);
   }
 }
 
@@ -37,8 +37,8 @@ export class DeckTreeProvider implements vscode.TreeDataProvider<vscode.TreeItem
   private groups: TreeGroup[] = [];
   private translations = new Map<string, string>();
 
-  setData(items: CommandItem[], translations: Map<string, string>): void {
-    this.groups = buildGroups(items);
+  setData(items: CommandItem[], translations: Map<string, string>, lang = 'uk'): void {
+    this.groups = buildGroups(items, lang);
     this.translations = translations;
     this._onDidChange.fire();
   }
