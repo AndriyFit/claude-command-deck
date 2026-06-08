@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-08T00:00:00Z",
+  "entries": [
+    {
+      "id": "command:yours:demo-command",
+      "type": "command",
+      "name": "demo-command",
+      "category": "other",
+      "origin": "custom",
+      "source": "yours",
+      "title": "Demo Command",
+      "description": "Demo command installed from the marketplace",
+      "version": "1",
+      "hash": "seed-demo-command",
+      "files": [
+        { "path": "demo-command.md", "url": "https://raw.githubusercontent.com/AndriyFit/claude-command-deck/main/catalog/samples/demo-command.md" }
+      ]
+    },
+    {
+      "id": "skill:yours:demo-skill",
+      "type": "skill",
+      "name": "demo-skill",
+      "category": "other",
+      "origin": "custom",
+      "source": "yours",
+      "title": "Demo Skill",
+      "description": "Demo skill installed from the marketplace",
+      "version": "1",
+      "hash": "seed-demo-skill",
+      "files": [
+        { "path": "SKILL.md", "url": "https://raw.githubusercontent.com/AndriyFit/claude-command-deck/main/catalog/samples/demo-skill/SKILL.md" }
+      ]
+    }
+  ]
+}
