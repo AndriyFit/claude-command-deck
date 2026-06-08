@@ -6,7 +6,7 @@ class GroupNode extends vscode.TreeItem {
   constructor(public group: TreeGroup) {
     super(group.label, vscode.TreeItemCollapsibleState.Expanded);
     this.contextValue = 'deckGroup';
-    this.iconPath = new vscode.ThemeIcon(group.id === 'command' ? 'terminal' : 'sparkle');
+    this.iconPath = new vscode.ThemeIcon(group.id === 'commands' ? 'terminal' : 'sparkle');
   }
 }
 
@@ -15,7 +15,7 @@ class ItemNode extends vscode.TreeItem {
     super(item.invocation, vscode.TreeItemCollapsibleState.None);
     this.description = description;
     this.tooltip = new vscode.MarkdownString(
-      `**${item.invocation}**\n\n${description}\n\n_${item.rawDescription}_\n\nsource: \`${item.source}\``,
+      `**${item.invocation}**\n\n${description}\n\nsource: \`${item.source}\``,
     );
     this.contextValue = 'deckItem';
     this.iconPath = new vscode.ThemeIcon(item.type === 'command' ? 'terminal' : 'sparkle');

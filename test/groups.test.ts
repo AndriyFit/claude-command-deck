@@ -13,10 +13,10 @@ describe('buildGroups', () => {
       it_('2', 'skill', 'z'),
       it_('3', 'command', 'a'),
     ]);
-    expect(groups[0].id).toBe('command');
+    expect(groups[0].id).toBe('commands');
     expect(groups[0].label).toBe('Commands (2)');
     expect(groups[0].items.map(i => i.name)).toEqual(['a', 'b']);
-    expect(groups[1].id).toBe('skill');
-    expect(groups[1].label).toBe('Skills (1)');
+    expect(groups[1].id).toBe('skill:user');
+    expect(groups[1].label).toBe('User Skills (1)');
   });
 });

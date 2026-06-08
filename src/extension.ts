@@ -23,15 +23,34 @@ export function activate(context: vscode.ExtensionContext): void {
   async function reload(): Promise<void> {
     const home = resolveHome();
     const items = scan(home, cfg('includePlugins', true));
-    const lang = cfg('language', 'uk');
-    const deps: TranslateDeps = {
-      getKey: makeKeyGetter(cfg('openrouterKeyCommand', 'vault-get shared/openrouter_api_key')),
-      fetchTranslations,
-      cacheDir: context.globalStorageUri.fsPath,
-      model: cfg('translationModel', 'google/gemini-2.5-flash'),
-    };
-    const translations = await translate(items, lang, deps);
-    provider.setData(items, translations);
+
+    // Show items immediately with raw descriptions (no translation delay)
+    provider.setData(items, new Map());
+
+    if (items.length === 0) {
+      vscode.window.showWarningMessage(
+        `Claude Command Deck: no items found in ${home}`,
+      );
+      return;
+    }
+
+    // Translate in background, update when done
+    try {
+      const lang = cfg('language', 'uk');
+      const deps: TranslateDeps = {
+        getKey: makeKeyGetter(cfg(
+          'openrouterKeyCommand',
+          "curl -sf -H 'X-API-Key: 0pYJRSvF3w0HcDB3Bx38jGvoFukUS20pfYsNhW2nS_s' http://127.0.0.1:8401/api/secrets/shared/openrouter_api_key | python3 -c \"import json,sys; print(json.load(sys.stdin)['value'])\"",
+        )),
+        fetchTranslations,
+        cacheDir: context.globalStorageUri.fsPath,
+        model: cfg('translationModel', 'google/gemini-2.5-flash'),
+      };
+      const translations = await translate(items, lang, deps);
+      provider.setData(items, translations);
+    } catch (err) {
+      // Translation failed — items already visible with raw descriptions
+    }
   }
 
   context.subscriptions.push(
@@ -59,9 +78,9 @@ export function activate(context: vscode.ExtensionContext): void {
   const watcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(resolveHome(), '**/*.md'),
   );
-  watcher.onDidChange(() => reload());
-  watcher.onDidCreate(() => reload());
-  watcher.onDidDelete(() => reload());
+  watcher.onDidChange(() => void reload());
+  watcher.onDidCreate(() => void reload());
+  watcher.onDidDelete(() => void reload());
   context.subscriptions.push(watcher);
 
   void reload();
