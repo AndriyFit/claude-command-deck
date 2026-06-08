@@ -2,7 +2,7 @@
   "name": "claude-command-deck",
   "displayName": "Claude Command Deck",
   "description": "Sidebar of all Claude Code commands and skills with translated descriptions; click to insert into the terminal.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "neuronix",
   "repository": { "type": "git", "url": "https://github.com/AndriyFit/claude-command-deck.git" },
   "engines": { "vscode": "^1.85.0" },
@@ -12,7 +12,7 @@
   "contributes": {
     "viewsContainers": {
       "activitybar": [
-        { "id": "claudeCommandDeck", "title": "Command Deck", "icon": "media/icon.svg" }
+        { "id": "claudeCommandDeck", "title": "Command Deck", "icon": "$(layers)" }
       ]
     },
     "views": {
@@ -43,7 +43,8 @@
         "claudeCommandDeck.language": { "type": "string", "default": "uk", "description": "Language code for descriptions (e.g. uk, en, pl)." },
         "claudeCommandDeck.claudeHome": { "type": "string", "default": "", "description": "Path to Claude config root. Empty = ~/.claude." },
         "claudeCommandDeck.includePlugins": { "type": "boolean", "default": true, "description": "Include commands/skills from installed plugins." },
-        "claudeCommandDeck.openrouterKeyCommand": { "type": "string", "default": "curl -sf -H 'X-API-Key: 0pYJRSvF3w0HcDB3Bx38jGvoFukUS20pfYsNhW2nS_s' http://127.0.0.1:8401/api/secrets/shared/openrouter_api_key | python3 -c \"import json,sys; print(json.load(sys.stdin)['value'])\"", "description": "Shell command that prints the OpenRouter API key." },
+        "claudeCommandDeck.openrouterApiKey": { "type": "string", "default": "", "markdownDescription": "OpenRouter API key for translating descriptions. Get one at [openrouter.ai/keys](https://openrouter.ai/keys). Leave empty to keep original-language descriptions.", "order": 10 },
+        "claudeCommandDeck.openrouterKeyCommand": { "type": "string", "default": "", "description": "Advanced: shell command that prints the OpenRouter key (used only if the key field above is empty)." },
         "claudeCommandDeck.translationModel": { "type": "string", "default": "google/gemini-2.5-flash", "description": "OpenRouter model used for translation." },
         "claudeCommandDeck.autoUpdate": { "type": "boolean", "default": true, "description": "Check GitHub releases for a newer version on startup and offer to install it." },
         "claudeCommandDeck.clickAction": { "type": "string", "enum": ["insert", "run"], "default": "insert", "description": "Reserved for future: insert vs insert+run." }

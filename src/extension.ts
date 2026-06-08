@@ -8,11 +8,22 @@ import { DeckTreeProvider, ItemNode } from './treeProvider';
 import { insertIntoTerminal } from './terminal';
 import { checkForUpdate } from './updater';
 
-const DEFAULT_KEY_COMMAND =
-  "curl -sf -H 'X-API-Key: 0pYJRSvF3w0HcDB3Bx38jGvoFukUS20pfYsNhW2nS_s' http://127.0.0.1:8401/api/secrets/shared/openrouter_api_key | python3 -c \"import json,sys; print(json.load(sys.stdin)['value'])\"";
-
 function cfg<T>(key: string, def: T): T {
   return vscode.workspace.getConfiguration('claudeCommandDeck').get<T>(key, def);
+}
+
+/**
+ * Resolves the OpenRouter key: direct setting first, then a shell command,
+ * otherwise throws (translation is skipped and original descriptions are shown).
+ */
+function buildKeyGetter(): () => Promise<string> {
+  const direct = cfg('openrouterApiKey', '').trim();
+  if (direct) return async () => direct;
+  const command = cfg('openrouterKeyCommand', '').trim();
+  if (command) return makeKeyGetter(command);
+  return async () => {
+    throw new Error('No OpenRouter API key configured');
+  };
 }
 
 function resolveHome(): string {
@@ -40,7 +51,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // Translate in background, update when done
     try {
       const deps: TranslateDeps = {
-        getKey: makeKeyGetter(cfg('openrouterKeyCommand', DEFAULT_KEY_COMMAND)),
+        getKey: buildKeyGetter(),
         fetchTranslations,
         cacheDir: context.globalStorageUri.fsPath,
         model: cfg('translationModel', 'google/gemini-2.5-flash'),
