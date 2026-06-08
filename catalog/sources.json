@@ -1,0 +1,18 @@
+{
+  "sources": [
+    {
+      "type": "command", "name": "demo-command", "category": "other",
+      "origin": "custom", "source": "yours",
+      "title": "Demo Command", "version": "1",
+      "files": [{ "path": "demo-command.md",
+        "url": "https://raw.githubusercontent.com/AndriyFit/claude-command-deck/main/catalog/samples/demo-command.md" }]
+    },
+    {
+      "type": "skill", "name": "demo-skill", "category": "other",
+      "origin": "custom", "source": "yours",
+      "title": "Demo Skill", "version": "1",
+      "files": [{ "path": "SKILL.md",
+        "url": "https://raw.githubusercontent.com/AndriyFit/claude-command-deck/main/catalog/samples/demo-skill/SKILL.md" }]
+    }
+  ]
+}
