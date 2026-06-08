@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseIndex, computeStatus } from '../src/catalog';
+import { parseIndex, computeStatus, entryFilesAreRemote } from '../src/catalog';
 import { CatalogEntry } from '../src/catalogTypes';
 
 function entry(over: Partial<CatalogEntry>): CatalogEntry {
@@ -49,6 +49,25 @@ describe('parseIndex', () => {
     const bad: Record<string, unknown> = { ...entry({}) };
     delete bad.version;
     expect(parseIndex({ version: 1, generatedAt: 't', entries: [bad] })).toHaveLength(0);
+  });
+});
+
+describe('entryFilesAreRemote', () => {
+  it('returns true when all file URLs are https', () => {
+    const e = entry({ files: [{ path: 'foo.md', url: 'https://example.com/foo.md' }, { path: 'bar.md', url: 'https://example.com/bar.md' }] });
+    expect(entryFilesAreRemote(e)).toBe(true);
+  });
+  it('returns true when all file URLs are http', () => {
+    const e = entry({ files: [{ path: 'foo.md', url: 'http://example.com/foo.md' }] });
+    expect(entryFilesAreRemote(e)).toBe(true);
+  });
+  it('returns false when a file URL uses file://', () => {
+    const e = entry({ files: [{ path: 'foo.md', url: 'https://example.com/foo.md' }, { path: 'bar.md', url: 'file:///local/bar.md' }] });
+    expect(entryFilesAreRemote(e)).toBe(false);
+  });
+  it('returns false when a file URL is a plain local path', () => {
+    const e = entry({ files: [{ path: 'foo.md', url: '/local/path/foo.md' }] });
+    expect(entryFilesAreRemote(e)).toBe(false);
   });
 });
 

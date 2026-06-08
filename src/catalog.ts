@@ -42,3 +42,8 @@ export function computeStatus(
     return { entry, state };
   });
 }
+
+/** True if every file URL of the entry is http(s). Used to block a remote catalog from referencing local files. */
+export function entryFilesAreRemote(entry: CatalogEntry): boolean {
+  return entry.files.every(f => f.url.startsWith('http://') || f.url.startsWith('https://'));
+}

@@ -30,6 +30,7 @@ async function readSource(url) {
   if (url.startsWith(SELF_PREFIX)) {
     // strip prefix + the "<ref>/" segment → repo-relative path
     const afterPrefix = url.slice(SELF_PREFIX.length);
+    // NOTE: assumes a single-segment git ref (e.g. `main`); a slash-containing ref would mis-map the path.
     const rest = afterPrefix.slice(afterPrefix.indexOf('/') + 1);
     return readFileSync(join(ROOT, rest), 'utf8');
   }

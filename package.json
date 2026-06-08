@@ -63,7 +63,6 @@
         "claudeCommandDeck.autoUpdate": { "type": "boolean", "default": true, "description": "Check GitHub releases for a newer version on startup and offer to install it." },
         "claudeCommandDeck.clickAction": { "type": "string", "enum": ["insert", "run"], "default": "insert", "description": "Reserved for future: insert vs insert+run." },
         "claudeCommandDeck.catalogUrl": { "type": "string", "default": "https://raw.githubusercontent.com/AndriyFit/claude-command-deck/main/catalog/index.json", "description": "URL or local path to the marketplace catalog index.json." },
-        "claudeCommandDeck.catalogRefreshHours": { "type": "number", "default": 24, "description": "How often to re-fetch the catalog (hours)." },
         "claudeCommandDeck.marketplaceOriginFilter": { "type": "string", "enum": ["all", "official", "custom"], "default": "all", "description": "Show all items, or only official / custom." }
       }
     }

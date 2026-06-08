@@ -44,6 +44,15 @@ describe('resolveDest', () => {
     const dest = resolveDest(HOME, 'skill', 'bar', '....//x.md');
     expect(dest.startsWith(path.join(HOME, 'skills', 'bar'))).toBe(true);
   });
+  it('rejects a non-text extension (.sh)', () => {
+    expect(() => resolveDest(HOME, 'skill', 'bar', 'evil.sh')).toThrow('unsupported file type');
+  });
+  it('rejects a non-text extension (.js)', () => {
+    expect(() => resolveDest(HOME, 'command', 'foo', 'foo.js')).toThrow('unsupported file type');
+  });
+  it('allows an allowed text extension inside a subdirectory (.txt)', () => {
+    expect(() => resolveDest(HOME, 'skill', 'bar', 'references/notes.txt')).not.toThrow();
+  });
 });
 
 describe('isUserItem', () => {

@@ -19,6 +19,8 @@ function safeName(name: string): string {
   return name;
 }
 
+const TEXT_EXTS = new Set(['.md', '.txt', '.json', '.yaml', '.yml', '.toml']);
+
 /**
  * Resolves a destination path and guarantees it stays within the allowed user root.
  * Lexical guard only (assumes POSIX, does not resolve symlinks) — writers must not
@@ -33,6 +35,10 @@ export function resolveDest(
   safeName(name);
   if (path.isAbsolute(relPath) || relPath.split(/[\\/]/).includes('..')) {
     throw new Error(`unsafe relPath: ${relPath}`);
+  }
+  const ext = path.extname(relPath).toLowerCase();
+  if (!TEXT_EXTS.has(ext)) {
+    throw new Error(`unsupported file type: ${relPath}`);
   }
   const roots = userRoots(home);
   const root = type === 'command' ? roots.command : path.join(roots.skill, name);
@@ -111,8 +117,12 @@ export async function install(home: string, entry: CatalogEntry, fetchFile: Fetc
     // rename() is atomic on POSIX; the tmp suffix includes the PID to avoid
     // collisions between concurrent install calls.
     const tmp = `${dest}.tmp-${process.pid}`;
-    fs.writeFileSync(tmp, content);
-    fs.renameSync(tmp, dest);
+    try {
+      fs.writeFileSync(tmp, content);
+      fs.renameSync(tmp, dest);
+    } finally {
+      fs.rmSync(tmp, { force: true });
+    }
   }
 }
 

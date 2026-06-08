@@ -33,7 +33,6 @@ offers to update itself — no manual reinstall needed.
 - `claudeCommandDeck.translationModel` — OpenRouter model (default `google/gemini-2.5-flash`)
 - `claudeCommandDeck.autoUpdate` — check GitHub releases on startup (default `true`)
 - `claudeCommandDeck.catalogUrl` — catalog index URL or local path
-- `claudeCommandDeck.catalogRefreshHours` — catalog re-fetch interval (hours)
 - `claudeCommandDeck.marketplaceOriginFilter` — show all / official / custom
 
 ## Marketplace

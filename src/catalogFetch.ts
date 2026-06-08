@@ -5,7 +5,7 @@ import { parseIndex } from './catalog';
 
 const CACHE_NAME = 'catalog-index.json';
 
-function isHttp(url: string): boolean {
+export function isHttp(url: string): boolean {
   return url.startsWith('http://') || url.startsWith('https://');
 }
 

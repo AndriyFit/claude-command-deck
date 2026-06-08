@@ -7,8 +7,8 @@ import { fetchTranslations, makeKeyGetter } from './openrouter';
 import { DeckTreeProvider, ItemNode } from './treeProvider';
 import { insertIntoTerminal } from './terminal';
 import { checkForUpdate } from './updater';
-import { fetchIndex, fetchFile } from './catalogFetch';
-import { computeStatus } from './catalog';
+import { fetchIndex, fetchFile, isHttp } from './catalogFetch';
+import { computeStatus, entryFilesAreRemote } from './catalog';
 import { install, uninstall, installedHashes } from './installer';
 import { MarketplaceTreeProvider, MarketRowNode, OriginFilter } from './marketplaceProvider';
 
@@ -107,6 +107,11 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     vscode.commands.registerCommand('claudeCommandDeck.refreshMarketplace', () => reloadMarketplace()),
     vscode.commands.registerCommand('claudeCommandDeck.install', async (node: MarketRowNode) => {
+      const catalogUrl = cfg('catalogUrl', '');
+      if (isHttp(catalogUrl) && !entryFilesAreRemote(node.entry)) {
+        vscode.window.showErrorMessage('Refusing to install: remote catalog references local files.');
+        return;
+      }
       try {
         await install(resolveHome(), node.entry, fetchFile);
         vscode.window.showInformationMessage(`Installed ${node.entry.title}`);
@@ -117,6 +122,11 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     }),
     vscode.commands.registerCommand('claudeCommandDeck.updateItem', async (node: MarketRowNode) => {
+      const catalogUrl = cfg('catalogUrl', '');
+      if (isHttp(catalogUrl) && !entryFilesAreRemote(node.entry)) {
+        vscode.window.showErrorMessage('Refusing to install: remote catalog references local files.');
+        return;
+      }
       try {
         await install(resolveHome(), node.entry, fetchFile);
         vscode.window.showInformationMessage(`Updated ${node.entry.title}`);
@@ -127,8 +137,11 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     }),
     vscode.commands.registerCommand('claudeCommandDeck.copyPluginInstall', (node: MarketRowNode) => {
-      const cmd = node.entry.pluginInstall ?? '';
-      void vscode.env.clipboard.writeText(cmd);
+      if (!node.entry.pluginInstall) {
+        vscode.window.showWarningMessage('No plugin install command for this entry.');
+        return;
+      }
+      void vscode.env.clipboard.writeText(node.entry.pluginInstall);
       vscode.window.showInformationMessage('Plugin install command copied — paste it into the Claude terminal.');
     }),
     vscode.commands.registerCommand('claudeCommandDeck.toggleOriginFilter', async () => {
