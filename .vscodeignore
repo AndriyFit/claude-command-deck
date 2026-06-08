@@ -13,3 +13,6 @@ notes.md
 notes.md.lock
 *.vsix
 package-lock.json
+catalog/**
+scripts/**
+.github/**
