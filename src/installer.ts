@@ -12,13 +12,17 @@ export function userRoots(home: string): { command: string; skill: string } {
 }
 
 function safeName(name: string): string {
-  if (!name || name.includes('/') || name.includes('\\') || name.includes('..')) {
+  if (!name || name === '.' || name.includes('/') || name.includes('\\') || name.includes('..')) {
     throw new Error(`unsafe name: ${name}`);
   }
   return name;
 }
 
-/** Resolves a destination path and guarantees it stays within the allowed user root. */
+/**
+ * Resolves a destination path and guarantees it stays within the allowed user root.
+ * Lexical guard only (assumes POSIX, does not resolve symlinks) — writers must not
+ * follow symlinks out of the root.
+ */
 export function resolveDest(
   home: string,
   type: 'command' | 'skill',

@@ -33,6 +33,16 @@ describe('resolveDest', () => {
   it('rejects absolute relPath', () => {
     expect(() => resolveDest(HOME, 'skill', 'bar', '/etc/passwd')).toThrow();
   });
+  it('rejects name "." (would collapse skill root to skills/ dir)', () => {
+    expect(() => resolveDest(HOME, 'skill', '.', 'SKILL.md')).toThrow();
+  });
+  it('rejects name ".." (traversal via name)', () => {
+    expect(() => resolveDest(HOME, 'skill', '..', 'SKILL.md')).toThrow();
+  });
+  it('permits a literal dotted segment inside relPath that stays within root', () => {
+    const dest = resolveDest(HOME, 'skill', 'bar', '....//x.md');
+    expect(dest.startsWith(path.join(HOME, 'skills', 'bar'))).toBe(true);
+  });
 });
 
 describe('isUserItem', () => {
