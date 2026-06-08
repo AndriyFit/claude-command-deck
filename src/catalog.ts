@@ -9,7 +9,10 @@ function isEntry(x: unknown): x is CatalogEntry {
     typeof e.name === 'string' &&
     typeof e.category === 'string' &&
     (e.origin === 'official' || e.origin === 'custom') &&
+    typeof e.source === 'string' &&
     typeof e.title === 'string' &&
+    typeof e.description === 'string' &&
+    typeof e.version === 'string' &&
     typeof e.hash === 'string' &&
     Array.isArray(e.files)
   );

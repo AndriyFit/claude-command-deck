@@ -24,4 +24,30 @@ describe('parseIndex', () => {
     expect(parseIndex(null)).toEqual([]);
     expect(parseIndex({ version: 1 })).toEqual([]);
   });
+  it('returns [] when top-level json is an array (not an object)', () => {
+    expect(parseIndex([])).toEqual([]);
+  });
+  it('skips an entry with an invalid type', () => {
+    const bad = { ...entry({}), type: 'bogus' } as unknown;
+    expect(parseIndex({ version: 1, generatedAt: 't', entries: [bad] })).toHaveLength(0);
+  });
+  it('skips an entry with an invalid origin', () => {
+    const bad = { ...entry({}), origin: 'weird' } as unknown;
+    expect(parseIndex({ version: 1, generatedAt: 't', entries: [bad] })).toHaveLength(0);
+  });
+  it('skips an entry missing source', () => {
+    const bad: Record<string, unknown> = { ...entry({}) };
+    delete bad.source;
+    expect(parseIndex({ version: 1, generatedAt: 't', entries: [bad] })).toHaveLength(0);
+  });
+  it('skips an entry missing description', () => {
+    const bad: Record<string, unknown> = { ...entry({}) };
+    delete bad.description;
+    expect(parseIndex({ version: 1, generatedAt: 't', entries: [bad] })).toHaveLength(0);
+  });
+  it('skips an entry missing version', () => {
+    const bad: Record<string, unknown> = { ...entry({}) };
+    delete bad.version;
+    expect(parseIndex({ version: 1, generatedAt: 't', entries: [bad] })).toHaveLength(0);
+  });
 });
