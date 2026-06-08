@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseIndex } from '../src/catalog';
+import { parseIndex, computeStatus } from '../src/catalog';
 import { CatalogEntry } from '../src/catalogTypes';
 
 function entry(over: Partial<CatalogEntry>): CatalogEntry {
@@ -49,5 +49,29 @@ describe('parseIndex', () => {
     const bad: Record<string, unknown> = { ...entry({}) };
     delete bad.version;
     expect(parseIndex({ version: 1, generatedAt: 't', entries: [bad] })).toHaveLength(0);
+  });
+});
+
+describe('computeStatus', () => {
+  const installed = new Map<string, string>([
+    ['command:foo', 'h1'],   // same hash → installed
+    ['skill:bar', 'OLD'],    // different hash → update
+  ]);
+
+  it('marks not_installed when key absent', () => {
+    const rows = computeStatus([entry({ id: 'command:yours:baz', name: 'baz', hash: 'h9' })], installed);
+    expect(rows[0].state).toBe('not_installed');
+  });
+  it('marks installed when hash matches', () => {
+    const rows = computeStatus([entry({ name: 'foo', hash: 'h1' })], installed);
+    expect(rows[0].state).toBe('installed');
+  });
+  it('marks update_available when hash differs', () => {
+    const rows = computeStatus([entry({ type: 'skill', name: 'bar', hash: 'NEW' })], installed);
+    expect(rows[0].state).toBe('update_available');
+  });
+  it('plugin entries are always not_installed (no file-drop detection)', () => {
+    const rows = computeStatus([entry({ type: 'plugin', name: 'p', files: [] })], installed);
+    expect(rows[0].state).toBe('not_installed');
   });
 });

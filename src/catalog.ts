@@ -1,4 +1,4 @@
-import { CatalogEntry } from './catalogTypes';
+import { CatalogEntry, CatalogRow, InstallState } from './catalogTypes';
 
 function isEntry(x: unknown): x is CatalogEntry {
   if (!x || typeof x !== 'object') return false;
@@ -23,4 +23,22 @@ export function parseIndex(json: unknown): CatalogEntry[] {
   const entries = (json as Record<string, unknown>).entries;
   if (!Array.isArray(entries)) return [];
   return entries.filter(isEntry);
+}
+
+export function installedKey(type: string, name: string): string {
+  return `${type}:${name}`;
+}
+
+export function computeStatus(
+  entries: CatalogEntry[],
+  installed: Map<string, string>,
+): CatalogRow[] {
+  return entries.map(entry => {
+    let state: InstallState = 'not_installed';
+    if (entry.type !== 'plugin') {
+      const have = installed.get(installedKey(entry.type, entry.name));
+      if (have !== undefined) state = have === entry.hash ? 'installed' : 'update_available';
+    }
+    return { entry, state };
+  });
 }
