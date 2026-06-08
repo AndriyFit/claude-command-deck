@@ -30,3 +30,4 @@ vscode-шар тонкий. OpenRouter key через `vault-get shared/openrout
 - 2026-06-08 10:40: Виправив scanner симлінків + іконку на codicon — 238 items, тематичні категорії, реліз v0.2.1
 - 2026-06-08 11:16: Зафіксував архітектуру Marketplace (гібрид, TreeView, build-скрипт) — визначено v1 scope, модулі та guards для install/uninstall
 - 2026-06-08 11:22: Написав і закомітив спек Marketplace (гібрид+build-script+TreeView 5a) — виправлено 3 баги матчингу/хешів, дизайн затверджено
+- 2026-06-08 11:36: Затвердив спек marketplace-design, написав план на 10 TDD-тасків — GitHub PAT прибрано з URL, додано у Vault
