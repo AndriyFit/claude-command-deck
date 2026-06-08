@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { resolveDest, isUserItem, installedHashes, sha256 } from '../src/installer';
+import { resolveDest, isUserItem, installedHashes, sha256, install, uninstall } from '../src/installer';
 import { CommandItem } from '../src/types';
+import { CatalogEntry } from '../src/catalogTypes';
 
 const HOME = path.join(__dirname, '.tmp-home');
 
@@ -64,5 +65,55 @@ describe('installedHashes', () => {
   });
   it('returns empty map when dirs absent', () => {
     expect(installedHashes(HOME).size).toBe(0);
+  });
+});
+
+function catEntry(over: Partial<CatalogEntry>): CatalogEntry {
+  return { id: 'x', type: 'skill', name: 'demo', category: 'other', origin: 'custom',
+    source: 'yours', title: 'Demo', description: 'd', version: '1', hash: 'h',
+    files: [{ path: 'SKILL.md', url: 'mem://skill' }], ...over };
+}
+
+describe('install', () => {
+  it('writes command file via injected fetchFile', async () => {
+    const e = catEntry({ type: 'command', name: 'foo', files: [{ path: 'foo.md', url: 'mem://foo' }] });
+    await install(HOME, e, async () => 'CMD-BODY');
+    expect(fs.readFileSync(path.join(HOME, 'commands', 'foo.md'), 'utf8')).toBe('CMD-BODY');
+  });
+  it('writes a multi-file skill', async () => {
+    const e = catEntry({ files: [
+      { path: 'SKILL.md', url: 'mem://s' },
+      { path: 'references/a.md', url: 'mem://a' },
+    ] });
+    await install(HOME, e, async (url) => (url === 'mem://s' ? 'MAIN' : 'REF'));
+    expect(fs.readFileSync(path.join(HOME, 'skills', 'demo', 'SKILL.md'), 'utf8')).toBe('MAIN');
+    expect(fs.readFileSync(path.join(HOME, 'skills', 'demo', 'references', 'a.md'), 'utf8')).toBe('REF');
+  });
+  it('rejects plugin entries', async () => {
+    await expect(install(HOME, catEntry({ type: 'plugin', files: [] }), async () => '')).rejects.toThrow();
+  });
+  it('rejects install into a symlinked skill dir', async () => {
+    fs.mkdirSync(path.join(HOME, 'skills'), { recursive: true });
+    fs.symlinkSync('/tmp', path.join(HOME, 'skills', 'demo'));
+    const e = catEntry({ files: [{ path: 'SKILL.md', url: 'mem://s' }] });
+    await expect(install(HOME, e, async () => 'MAIN')).rejects.toThrow('symlinked');
+  });
+});
+
+describe('uninstall', () => {
+  it('deletes a user command file', async () => {
+    fs.mkdirSync(path.join(HOME, 'commands'), { recursive: true });
+    fs.writeFileSync(path.join(HOME, 'commands', 'foo.md'), 'X');
+    await uninstall(HOME, userItem('command', 'foo'));
+    expect(fs.existsSync(path.join(HOME, 'commands', 'foo.md'))).toBe(false);
+  });
+  it('deletes a user skill directory', async () => {
+    fs.mkdirSync(path.join(HOME, 'skills', 'bar'), { recursive: true });
+    fs.writeFileSync(path.join(HOME, 'skills', 'bar', 'SKILL.md'), 'X');
+    await uninstall(HOME, userItem('skill', 'bar'));
+    expect(fs.existsSync(path.join(HOME, 'skills', 'bar'))).toBe(false);
+  });
+  it('refuses non-user items', async () => {
+    await expect(uninstall(HOME, { ...userItem('skill', 'bar'), source: 'superpowers' })).rejects.toThrow();
   });
 });
