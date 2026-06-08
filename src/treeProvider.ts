@@ -17,7 +17,7 @@ class ItemNode extends vscode.TreeItem {
     this.tooltip = new vscode.MarkdownString(
       `**${item.invocation}**\n\n${description}\n\nsource: \`${item.source}\``,
     );
-    this.contextValue = 'deckItem';
+    this.contextValue = item.source === 'user' ? 'deckItemUser' : 'deckItem';
     this.iconPath = new vscode.ThemeIcon(item.type === 'command' ? 'terminal' : 'sparkle');
     this.command = {
       command: 'claudeCommandDeck.insert',
