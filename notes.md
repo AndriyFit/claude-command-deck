@@ -31,3 +31,5 @@ vscode-шар тонкий. OpenRouter key через `vault-get shared/openrout
 - 2026-06-08 11:16: Зафіксував архітектуру Marketplace (гібрид, TreeView, build-скрипт) — визначено v1 scope, модулі та guards для install/uninstall
 - 2026-06-08 11:22: Написав і закомітив спек Marketplace (гібрид+build-script+TreeView 5a) — виправлено 3 баги матчингу/хешів, дизайн затверджено
 - 2026-06-08 11:36: Затвердив спек marketplace-design, написав план на 10 TDD-тасків — GitHub PAT прибрано з URL, додано у Vault
+- 2026-06-08 14:46: Завершив реалізацію Marketplace (10 тасків TDD) — 125 тестів, E2E pass, hardening, vsix 0.2.1 готовий до merge
+- 2026-06-08 14:48: Завершив 10 тасків Marketplace + hardening — 125 тестів, E2E pass, змержено feat у main
