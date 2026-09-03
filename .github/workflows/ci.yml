@@ -1,0 +1,65 @@
+name: CI
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Node packages
+        shell: bash
+        run: |
+          mapfile -t dirs < <(find . -name package.json \
+            -not -path '*/node_modules/*' -not -path '*/.next/*' \
+            -not -path '*/dist/*' -not -path '*/.claude/*' -printf '%h\n' | sort -u)
+          [ ${#dirs[@]} -eq 0 ] && { echo "no node packages"; exit 0; }
+          failed=()
+          for d in "${dirs[@]}"; do
+            echo "::group::$d"
+            (
+              cd "$d" || exit 1
+              if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+              npm run --if-present lint
+              npm run --if-present typecheck
+              npm run --if-present test
+              npm run --if-present build
+            ) || failed+=("$d")
+            echo "::endgroup::"
+          done
+          if [ ${#failed[@]} -gt 0 ]; then
+            printf '::error::failed: %s\n' "${failed[@]}"
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        if: hashFiles('**/requirements.txt', '**/pyproject.toml') != ''
+        with:
+          python-version: '3.12'
+
+      - name: Python tests
+        if: hashFiles('**/requirements.txt', '**/pyproject.toml') != ''
+        shell: bash
+        run: |
+          python -m pip install -q --upgrade pip pytest
+          for r in $(find . -maxdepth 3 -name requirements.txt -not -path '*/node_modules/*'); do
+            pip install -q -r "$r" || echo "::warning::deps failed: $r"
+          done
+          if find . -name 'test_*.py' -o -name '*_test.py' | grep -qv node_modules; then
+            pytest -q --ignore=node_modules
+          else
+            echo "no python tests"
+          fi
