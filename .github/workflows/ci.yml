@@ -32,11 +32,13 @@ jobs:
             echo "::group::$d"
             (
               cd "$d" || exit 1
-              if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
-              npm run --if-present lint
-              npm run --if-present typecheck
-              npm run --if-present test
-              npm run --if-present build
+              if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi || exit 1
+              # `set -e` is ignored inside a subshell on the left of `||`, so every step must be checked explicitly
+              rc=0
+              for s in lint typecheck test build; do
+                npm run --if-present "$s" || { echo "::error::$d: npm run $s failed"; rc=1; }
+              done
+              exit $rc
             ) || failed+=("$d")
             echo "::endgroup::"
           done
